@@ -14,7 +14,7 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
   `;
 
   if (carrito.length === 0) {
-    throw new Error('No hay items en el carrito');
+    throw new Error("No hay items en el carrito");
   }
 
   const id_pedido = carrito[0].id_pedido;
@@ -28,13 +28,15 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
   `;
 
   if (items.length === 0) {
-    throw new Error('El carrito está vacío');
+    throw new Error("El carrito está vacío");
   }
 
   // Verificar stock de todos los productos
   for (const item of items) {
     if (item.stock_actual < item.cantidad) {
-      throw new Error(`Stock insuficiente para el producto ID ${item.id_producto}`);
+      throw new Error(
+        `Stock insuficiente para el producto ID ${item.id_producto}`
+      );
     }
   }
 
@@ -78,7 +80,7 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
     id_pedido,
     id_venta: venta[0].id_venta,
     total,
-    estado: 'pendiente'
+    estado: "pendiente",
   };
 };
 
@@ -128,7 +130,7 @@ export const obtenerDetalleOrden = async (id_usuario, id_pedido) => {
   `;
 
   if (orden.length === 0) {
-    throw new Error('Orden no encontrada');
+    throw new Error("Orden no encontrada");
   }
 
   // Obtener items de la orden
@@ -148,6 +150,6 @@ export const obtenerDetalleOrden = async (id_usuario, id_pedido) => {
 
   return {
     ...orden[0],
-    items
+    items,
   };
 };

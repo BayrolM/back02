@@ -74,10 +74,10 @@ export const obtenerDashboard = async () => {
       total_ordenes: parseInt(totalOrdenes[0].total),
       total_productos: parseInt(totalProductos[0].total),
       total_usuarios: parseInt(totalUsuarios[0].total),
-      productos_bajo_stock: parseInt(productosBajoStock[0].total)
+      productos_bajo_stock: parseInt(productosBajoStock[0].total),
     },
     ventas_por_mes: ventasPorMes,
-    productos_mas_vendidos: productosMasVendidos
+    productos_mas_vendidos: productosMasVendidos,
   };
 };
 
@@ -141,7 +141,62 @@ export const obtenerReporteVentas = async (filtros = {}) => {
     totales: {
       cantidad_ventas: parseInt(totales[0].cantidad_ventas),
       total_ventas: parseFloat(totales[0].total_ventas || 0),
-      promedio_venta: parseFloat(totales[0].promedio_venta || 0)
-    }
+      promedio_venta: parseFloat(totales[0].promedio_venta || 0),
+    },
+  };
+};
+
+/**
+ * Obtener detalle de una venta específica
+ */
+export const obtenerDetalleVenta = async (id_venta) => {
+  // Obtener información de la venta
+  const venta = await sql`
+    SELECT 
+      v.id_venta,
+      v.fecha_venta,
+      v.metodo_pago,
+      v.total,
+      v.estado,
+      u.id_usuario,
+      u.nombres,
+      u.apellidos,
+      u.email,
+      u.telefono,
+      u.documento,
+      p.id_pedido,
+      p.direccion,
+      p.ciudad,
+      p.estado as estado_pedido
+    FROM ventas v
+    INNER JOIN usuarios u ON v.id_cliente = u.id_usuario
+    LEFT JOIN pedidos p ON v.id_pedido = p.id_pedido
+    WHERE v.id_venta = ${id_venta}
+  `;
+
+  if (venta.length === 0) {
+    return null;
+  }
+
+  // Obtener los items de la venta
+  const items = await sql`
+    SELECT 
+      dv.id_detalle_venta,
+      dv.id_producto,
+      dv.cantidad,
+      dv.precio_unitario,
+      dv.subtotal,
+      p.nombre,
+      p.sku,
+      p.descripcion
+    FROM detalle_ventas dv
+    INNER JOIN productos p ON dv.id_producto = p.id_producto
+    WHERE dv.id_venta = ${id_venta}
+    ORDER BY dv.id_detalle_venta
+  `;
+
+  return {
+    ...venta[0],
+    items,
   };
 };

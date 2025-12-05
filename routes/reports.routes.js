@@ -2,7 +2,8 @@ import { Router } from "express";
 import { authRequired } from "../middleware/auth.middleware.js";
 import {
   obtenerDashboard,
-  obtenerReporteVentas
+  obtenerReporteVentas,
+  obtenerDetalleVenta,
 } from "../controllers/reports.controller.js";
 
 const router = Router();
@@ -11,5 +12,6 @@ const router = Router();
 // En producción, deberías agregar un middleware adicional para verificar rol de admin
 router.get("/dashboard", authRequired, obtenerDashboard);
 router.get("/sales", authRequired, obtenerReporteVentas);
+router.get("/sales/:id", authRequired, obtenerDetalleVenta);
 
 export default router;
