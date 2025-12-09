@@ -1,16 +1,56 @@
 import jwt from "jsonwebtoken";
 
 export const authRequired = (req, res, next) => {
-    const token  = req.headers.authorization.split(" ")[1];
+  console.log("🔐 === Middleware authRequired ===");
 
-    if(!token) 
-        return res.status(401).json({message: "Token no proporcionado"});
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(403).json({message: "Token no valido"});
+  try {
+    // Verificar que existe el header Authorization
+    if (!req.headers.authorization) {
+      console.log("❌ No hay header Authorization");
+      return res.status(401).json({ message: "Token no proporcionado" });
     }
-}
+
+    const authHeader = req.headers.authorization;
+    console.log(
+      "📋 Authorization Header:",
+      authHeader.substring(0, 50) + "..."
+    );
+
+    // Verificar formato "Bearer TOKEN"
+    const parts = authHeader.split(" ");
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
+      console.log("❌ Formato de Authorization incorrecto");
+      return res.status(401).json({ message: "Formato de token inválido" });
+    }
+
+    const token = parts[1];
+
+    if (!token) {
+      console.log("❌ Token vacío");
+      return res.status(401).json({ message: "Token no proporcionado" });
+    }
+
+    // Verificar token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    console.log("✅ Token decodificado exitosamente");
+    console.log("👤 Usuario decodificado:", JSON.stringify(decoded, null, 2));
+    console.log("🔑 id_usuario:", decoded.id_usuario);
+    console.log("🔑 rol:", decoded.rol, "(tipo:", typeof decoded.rol, ")");
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.error("💥 Error en authRequired:", error.message);
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(403).json({ message: "Token expirado" });
+    }
+
+    if (error.name === "JsonWebTokenError") {
+      return res.status(403).json({ message: "Token no válido" });
+    }
+
+    return res.status(403).json({ message: "Error de autenticación" });
+  }
+};
