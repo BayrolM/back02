@@ -85,49 +85,122 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
 };
 
 /**
- * Obtener historial de órdenes del usuario
+ * ✅ MODIFICADO: Obtener historial de órdenes del usuario
+ * Si es admin (rol = 1), obtiene TODAS las órdenes
+ * Si es usuario normal, solo sus órdenes
  */
-export const obtenerOrdenes = async (id_usuario) => {
-  const ordenes = await sql`
-    SELECT 
-      p.id_pedido,
-      p.fecha_pedido,
-      p.direccion,
-      p.ciudad,
-      p.total,
-      p.estado,
-      v.id_venta,
-      v.metodo_pago
-    FROM pedidos p
-    LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
-    WHERE p.id_usuario = ${id_usuario} 
-      AND p.estado != 'carrito'
-    ORDER BY p.fecha_pedido DESC
-  `;
+export const obtenerOrdenes = async (id_usuario, rol = null) => {
+  console.log(`📦 obtenerOrdenes - Usuario: ${id_usuario}, Rol: ${rol}`);
 
+  let ordenes;
+
+  // Si es admin (rol === 1), obtener TODAS las ordenes
+  if (rol === 1) {
+    console.log("👑 Admin detectado - Obteniendo TODAS las órdenes");
+    ordenes = await sql`
+      SELECT 
+        p.id_pedido,
+        p.id_usuario,
+        p.fecha_pedido,
+        p.direccion,
+        p.ciudad,
+        p.total,
+        p.estado,
+        v.id_venta,
+        v.metodo_pago,
+        u.nombre as nombre_usuario,
+        u.email as email_usuario
+      FROM pedidos p
+      LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
+      LEFT JOIN usuarios u ON p.id_usuario = u.id_usuario
+      WHERE p.estado != 'carrito'
+      ORDER BY p.fecha_pedido DESC
+    `;
+  } else {
+    // Usuario normal solo ve sus propias órdenes
+    console.log(
+      `👤 Usuario normal - Obteniendo órdenes de usuario ${id_usuario}`
+    );
+    ordenes = await sql`
+      SELECT 
+        p.id_pedido,
+        p.id_usuario,
+        p.fecha_pedido,
+        p.direccion,
+        p.ciudad,
+        p.total,
+        p.estado,
+        v.id_venta,
+        v.metodo_pago
+      FROM pedidos p
+      LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
+      WHERE p.id_usuario = ${id_usuario} 
+        AND p.estado != 'carrito'
+      ORDER BY p.fecha_pedido DESC
+    `;
+  }
+
+  console.log(`✅ Encontradas ${ordenes.length} órdenes`);
   return ordenes;
 };
 
 /**
- * Obtener detalle de una orden específica
+ * Obtener detalle de una orden especifica
+ * Si es admin, puede ver cualquier orden
+ * Si es usuario normal, solo puede ver sus propias ordenes
  */
-export const obtenerDetalleOrden = async (id_usuario, id_pedido) => {
-  // Verificar que la orden pertenece al usuario
-  const orden = await sql`
-    SELECT 
-      p.id_pedido,
-      p.fecha_pedido,
-      p.direccion,
-      p.ciudad,
-      p.total,
-      p.estado,
-      v.id_venta,
-      v.metodo_pago
-    FROM pedidos p
-    LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
-    WHERE p.id_pedido = ${id_pedido} 
-      AND p.id_usuario = ${id_usuario}
-  `;
+export const obtenerDetalleOrden = async (
+  id_usuario,
+  id_pedido,
+  rol = null
+) => {
+  console.log(
+    `📝 obtenerDetalleOrden - Usuario: ${id_usuario}, Pedido: ${id_pedido}, Rol: ${rol}`
+  );
+
+  let orden;
+
+  // Si es admin, puede ver cualquier orden
+  if (rol === 1) {
+    console.log("👑 Admin - Buscando orden sin restricción de usuario");
+    orden = await sql`
+      SELECT 
+        p.id_pedido,
+        p.id_usuario,
+        p.fecha_pedido,
+        p.direccion,
+        p.ciudad,
+        p.total,
+        p.estado,
+        v.id_venta,
+        v.metodo_pago,
+        u.nombre as nombre_usuario,
+        u.email as email_usuario
+      FROM pedidos p
+      LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
+      LEFT JOIN usuarios u ON p.id_usuario = u.id_usuario
+      WHERE p.id_pedido = ${id_pedido}
+    `;
+  } else {
+    // Usuario normal solo puede ver sus propias órdenes
+    console.log("👤 Usuario normal - Verificando que la orden le pertenece");
+    orden = await sql`
+      SELECT 
+        p.id_pedido,
+        p.id_usuario,
+        p.fecha_pedido,
+        p.direccion,
+        p.ciudad,
+        p.total,
+        p.estado,
+        v.id_venta,
+        v.metodo_pago
+      FROM pedidos p
+      LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
+      WHERE p.id_pedido = ${id_pedido} 
+        AND p.id_usuario = ${id_usuario}
+    `;
+  }
 
   if (orden.length === 0) {
     throw new Error("Orden no encontrada");
@@ -147,6 +220,8 @@ export const obtenerDetalleOrden = async (id_usuario, id_pedido) => {
     INNER JOIN productos p ON dp.id_producto = p.id_producto
     WHERE dp.id_pedido = ${id_pedido}
   `;
+
+  console.log(`✅ Orden encontrada con ${items.length} items`);
 
   return {
     ...orden[0],
