@@ -1,4 +1,4 @@
-import sql from "../config/db.js";
+import sql from '../config/db.js';
 
 /**
  * Crear una nueva orden desde el carrito
@@ -14,7 +14,7 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
   `;
 
   if (carrito.length === 0) {
-    throw new Error("No hay items en el carrito");
+    throw new Error('No hay items en el carrito');
   }
 
   const id_pedido = carrito[0].id_pedido;
@@ -28,7 +28,7 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
   `;
 
   if (items.length === 0) {
-    throw new Error("El carrito está vacío");
+    throw new Error('El carrito está vacío');
   }
 
   // Verificar stock de todos los productos
@@ -80,7 +80,7 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
     id_pedido,
     id_venta: venta[0].id_venta,
     total,
-    estado: "pendiente",
+    estado: 'pendiente',
   };
 };
 
@@ -96,9 +96,9 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
 
   // Si es admin (rol === 1), obtener TODAS las ordenes
   if (rol === 1) {
-    console.log("👑 Admin detectado - Obteniendo TODAS las órdenes");
+    console.log('👑 Admin detectado - Obteniendo TODAS las órdenes');
     ordenes = await sql`
-      SELECT 
+      SELECT
         p.id_pedido,
         p.id_usuario,
         p.fecha_pedido,
@@ -108,7 +108,7 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
         p.estado,
         v.id_venta,
         v.metodo_pago,
-        u.nombre as nombre_usuario,
+        CONCAT(u.nombres, ' ', u.apellidos) as nombre_usuario,
         u.email as email_usuario
       FROM pedidos p
       LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
@@ -122,7 +122,7 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
       `👤 Usuario normal - Obteniendo órdenes de usuario ${id_usuario}`
     );
     ordenes = await sql`
-      SELECT 
+      SELECT
         p.id_pedido,
         p.id_usuario,
         p.fecha_pedido,
@@ -131,10 +131,12 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
         p.total,
         p.estado,
         v.id_venta,
-        v.metodo_pago
+        v.metodo_pago,
+        CONCAT(u.nombres, ' ', u.apellidos) as nombre_usuario
       FROM pedidos p
       LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
-      WHERE p.id_usuario = ${id_usuario} 
+      LEFT JOIN usuarios u ON p.id_usuario = u.id_usuario
+      WHERE p.id_usuario = ${id_usuario}
         AND p.estado != 'carrito'
       ORDER BY p.fecha_pedido DESC
     `;
@@ -162,7 +164,7 @@ export const obtenerDetalleOrden = async (
 
   // Si es admin, puede ver cualquier orden
   if (rol === 1) {
-    console.log("👑 Admin - Buscando orden sin restricción de usuario");
+    console.log('👑 Admin - Buscando orden sin restricción de usuario');
     orden = await sql`
       SELECT 
         p.id_pedido,
@@ -183,7 +185,7 @@ export const obtenerDetalleOrden = async (
     `;
   } else {
     // Usuario normal solo puede ver sus propias órdenes
-    console.log("👤 Usuario normal - Verificando que la orden le pertenece");
+    console.log('👤 Usuario normal - Verificando que la orden le pertenece');
     orden = await sql`
       SELECT 
         p.id_pedido,
@@ -203,7 +205,7 @@ export const obtenerDetalleOrden = async (
   }
 
   if (orden.length === 0) {
-    throw new Error("Orden no encontrada");
+    throw new Error('Orden no encontrada');
   }
 
   // Obtener items de la orden

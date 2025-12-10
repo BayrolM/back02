@@ -1,4 +1,4 @@
-import sql from "../config/db.js";
+import sql from '../config/db.js';
 
 /**
  * Obtener estadísticas para el dashboard
@@ -85,53 +85,60 @@ export const obtenerDashboard = async () => {
  * Obtener reporte de ventas con filtros
  */
 export const obtenerReporteVentas = async (filtros = {}) => {
-  const { fecha_inicio, fecha_fin, limit = 50 } = filtros;
+  const { fecha_inicio, fecha_fin, id_usuario, limit = 50 } = filtros;
 
   let whereConditions = sql`WHERE v.estado = true`;
 
   if (fecha_inicio && fecha_fin) {
     whereConditions = sql`
-      WHERE v.estado = true 
+      WHERE v.estado = true
         AND v.fecha_venta >= ${fecha_inicio}::timestamp
         AND v.fecha_venta <= ${fecha_fin}::timestamp
     `;
   } else if (fecha_inicio) {
     whereConditions = sql`
-      WHERE v.estado = true 
+      WHERE v.estado = true
         AND v.fecha_venta >= ${fecha_inicio}::timestamp
     `;
   } else if (fecha_fin) {
     whereConditions = sql`
-      WHERE v.estado = true 
+      WHERE v.estado = true
         AND v.fecha_venta <= ${fecha_fin}::timestamp
     `;
   }
 
+  if (id_usuario) {
+    whereConditions = sql`${whereConditions} AND v.id_cliente = ${id_usuario}`;
+  }
+
   const ventas = await sql`
-    SELECT 
+    SELECT
       v.id_venta,
+      CONCAT(u.nombres, ' ', u.apellidos) as nombre_usuario,
+      pr.nombre as nombre_producto,
+      dv.cantidad,
+      dv.subtotal,
       v.fecha_venta,
       v.metodo_pago,
-      v.total,
-      u.nombres,
-      u.apellidos,
-      u.email,
+      v.total as total_venta,
       p.id_pedido,
       p.estado as estado_pedido
-    FROM ventas v
+    FROM detalle_ventas dv
+    INNER JOIN ventas v ON dv.id_venta = v.id_venta
+    INNER JOIN productos pr ON dv.id_producto = pr.id_producto
     INNER JOIN usuarios u ON v.id_cliente = u.id_usuario
     LEFT JOIN pedidos p ON v.id_pedido = p.id_pedido
     ${whereConditions}
-    ORDER BY v.fecha_venta DESC
+    ORDER BY v.fecha_venta DESC, v.id_venta
     LIMIT ${limit}
   `;
 
   // Calcular totales
   const totales = await sql`
-    SELECT 
-      COUNT(*) as cantidad_ventas,
-      SUM(total) as total_ventas,
-      AVG(total) as promedio_venta
+    SELECT
+      COUNT(DISTINCT v.id_venta) as cantidad_ventas,
+      SUM(v.total) as total_ventas,
+      AVG(v.total) as promedio_venta
     FROM ventas v
     ${whereConditions}
   `;
@@ -147,12 +154,59 @@ export const obtenerReporteVentas = async (filtros = {}) => {
 };
 
 /**
+ * Obtener reporte de stock
+ */
+export const obtenerReporteStock = async () => {
+  const productos = await sql`
+    SELECT
+      p.id_producto,
+      p.sku,
+      p.nombre,
+      p.stock_actual,
+      p.stock_max,
+      p.stock_min,
+      p.precio_venta,
+      m.nombre as marca,
+      c.nombre as categoria
+    FROM productos p
+    INNER JOIN marcas m ON p.id_marca = m.id_marca
+    INNER JOIN categorias c ON p.id_categoria = c.id_categoria
+    WHERE p.estado = true
+    ORDER BY p.stock_actual ASC
+  `;
+
+  return productos;
+};
+
+/**
+ * Obtener reporte de usuarios
+ */
+export const obtenerReporteUsuarios = async () => {
+  const usuarios = await sql`
+    SELECT
+      u.id_usuario,
+      u.documento,
+      CONCAT(u.nombres, ' ', u.apellidos) as nombre_completo,
+      u.email,
+      u.telefono,
+      u.ciudad,
+      r.nombre as rol,
+      u.estado
+    FROM usuarios u
+    INNER JOIN roles r ON u.id_rol = r.id_rol
+    ORDER BY u.id_usuario
+  `;
+
+  return usuarios;
+};
+
+/**
  * Obtener detalle de una venta específica
  */
 export const obtenerDetalleVenta = async (id_venta) => {
   // Obtener información de la venta
   const venta = await sql`
-    SELECT 
+    SELECT
       v.id_venta,
       v.fecha_venta,
       v.metodo_pago,
@@ -180,7 +234,7 @@ export const obtenerDetalleVenta = async (id_venta) => {
 
   // Obtener los items de la venta
   const items = await sql`
-    SELECT 
+    SELECT
       dv.id_detalle_venta,
       dv.id_producto,
       dv.cantidad,
