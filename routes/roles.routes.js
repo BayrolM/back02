@@ -10,7 +10,6 @@ import {
 const router = Router();
 
 // Todas las rutas requieren autenticación
-// En producción, deberías agregar middleware para verificar rol de admin
 router.get("/", authRequired, listarRoles);
 router.get("/:id", authRequired, obtenerRol);
 router.post("/", authRequired, crearRol);

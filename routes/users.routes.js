@@ -16,7 +16,6 @@ router.get("/profile", authRequired, getProfile);
 router.put("/profile", authRequired, updateProfile);
 
 // Rutas de administración de usuarios (requieren autenticación)
-// En producción, agregar middleware para verificar rol de admin
 router.get("/", authRequired, listarUsuarios);
 router.get("/:id", authRequired, obtenerUsuario);
 router.put("/:id", authRequired, actualizarUsuario);
