@@ -17,32 +17,60 @@ export const register = async (req, res) => {
       password,
     } = req.body;
 
+    console.log('📝 === Register Request ===');
+    console.log('📧 Email:', email);
+    console.log('👤 Nombres:', nombres, apellidos);
+
+    // Validar campos requeridos
+    if (!email || !password || !nombres || !apellidos) {
+      return res.status(400).json({ message: 'Faltan campos requeridos' });
+    }
+
     // Verificar si el correo ya existe
+    console.log('🔍 Verificando si el email ya existe...');
     const emailExists =
       await sql`SELECT * FROM usuarios WHERE email = ${email}`;
 
     if (emailExists.length > 0) {
+      console.log('❌ Email ya registrado:', email);
       return res.status(400).json({ message: 'El email ya está registrado' });
     }
+
+    console.log('✅ Email disponible');
+    console.log('🔐 Encriptando contraseña...');
 
     // Encriptar contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await sql`
-            INSERT INTO usuarios (
-                id_rol, tipo_documento, documento, nombres, apellidos,
-                email, telefono, direccion, ciudad, password_hash, estado
-            )
-            VALUES (
-                ${id_rol}, ${tipo_documento}, ${documento}, ${nombres}, ${apellidos},
-                ${email}, ${telefono}, ${direccion}, ${ciudad}, ${hashedPassword}, true
-            )
-        `;
+    console.log('💾 Insertando usuario en BD...');
+    const result = await sql`
+      INSERT INTO usuarios (
+        id_rol, tipo_documento, documento, nombres, apellidos,
+        email, telefono, direccion, ciudad, password_hash, estado
+      )
+      VALUES (
+        ${id_rol || 2}, ${tipo_documento || 'CC'}, ${
+      documento || ''
+    }, ${nombres}, ${apellidos},
+        ${email}, ${telefono || ''}, ${direccion || ''}, ${
+      ciudad || ''
+    }, ${hashedPassword}, true
+      )
+      RETURNING id_usuario, email, nombres
+    `;
 
-    return res.json({ message: 'Usuario registrado correctamente' });
+    console.log('✅ Usuario registrado exitosamente:', result[0].email);
+    return res.status(201).json({
+      message: 'Usuario registrado correctamente',
+      usuario: result[0],
+    });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error en el servidor' });
+    console.error('💥 ERROR en register:', error);
+    console.error('📋 Stack trace:', error.stack);
+    return res.status(500).json({
+      message: 'Error en el servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 };
 
