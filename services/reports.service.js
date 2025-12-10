@@ -129,7 +129,7 @@ export const obtenerReporteVentas = async (filtros = {}) => {
     INNER JOIN usuarios u ON v.id_cliente = u.id_usuario
     LEFT JOIN pedidos p ON v.id_pedido = p.id_pedido
     ${whereConditions}
-    ORDER BY v.fecha_venta DESC, v.id_venta
+    ORDER BY v.id_venta ASC
     LIMIT ${limit}
   `;
 
