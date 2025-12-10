@@ -113,14 +113,14 @@ export const eliminar = async (req, res) => {
 
 export const featured = async (req, res) => {
   try {
-    console.log('⭐ GET /api/products/featured - Productos destacados');
-    const limit = req.query.limit ?? 10;
-    console.log('📋 Limit:', limit);
+    console.log("⭐ GET /api/products/featured - Productos destacados");
+    const limit = parseInt(req.query.limit ?? 10, 10);
+    console.log("📋 Limit:", limit);
     const items = await productosService.productosDestacados(limit);
-    console.log('✅ Productos destacados obtenidos:', items.length);
+    console.log("✅ Productos destacados obtenidos:", items.length);
     return res.json({ ok: true, data: items });
   } catch (err) {
-    console.error('❌ Error en featured:', err);
-    return res.status(500).json({ ok: false, message: 'Error interno' });
+    console.error("❌ Error en featured:", err);
+    return res.status(500).json({ ok: false, message: "Error interno" });
   }
 };
