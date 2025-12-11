@@ -40,17 +40,14 @@ export const crearOrden = async (req, res) => {
 export const obtenerOrdenes = async (req, res) => {
   try {
     const { id_usuario, rol } = req.user; // Extraer rol del JWT
+    const { estado } = req.query;
 
     console.log(`📦 Usuario ${id_usuario} (rol: ${rol}) solicitando órdenes`);
 
     // Pasar tanto el id_usuario como el rol al servicio
-    let ordenes = await ordersService.obtenerOrdenes(id_usuario, rol);
-
-    // Si el usuario es admin (rol 1), filtramos para mostrar solo pedidos completados en la vista de ventas
-    if (rol === 1) {
-      ordenes = ordenes.filter((orden) => orden.estado === 'completado');
-    }
-
+    // El servicio ahora puede recibir un estado para filtrar
+    const ordenes = await ordersService.obtenerOrdenes(id_usuario, rol, estado);
+    s;
     console.log(`✅ Devolviendo ${ordenes.length} órdenes`);
 
     return res.json({ ok: true, data: ordenes });

@@ -114,7 +114,7 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
       LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
       LEFT JOIN usuarios u ON p.id_usuario = u.id_usuario
       WHERE p.estado != 'carrito'
-      ORDER BY p.fecha_pedido DESC
+      ORDER BY p.id_pedido ASC
     `;
   } else {
     // Usuario normal solo ve sus propias órdenes
@@ -138,7 +138,7 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
       LEFT JOIN usuarios u ON p.id_usuario = u.id_usuario
       WHERE p.id_usuario = ${id_usuario}
         AND p.estado != 'carrito'
-      ORDER BY p.fecha_pedido DESC
+      ORDER BY p.id_pedido ASC
     `;
   }
 
