@@ -1,15 +1,41 @@
-import sql from "../config/db.js";
+import sql from '../config/db.js';
 
 export const getProfile = async (req, res) => {
   try {
+    // Seleccionar explícitamente los campos para seguridad y claridad.
     const result = await sql`
-            SELECT * FROM usuarios WHERE id_usuario = ${req.user.id_usuario}
+      SELECT 
+        id_usuario,
+        nombres,
+        apellidos,
+        email,
+        telefono,
+        direccion,
+        ciudad,
+        id_rol 
+      FROM usuarios 
+      WHERE id_usuario = ${req.user.id_usuario}
         `;
 
-    return res.json(result[0]);
+    if (result.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'Perfil de usuario no encontrado' });
+    }
+
+    const user = result[0];
+
+    // Mapear el perfil para que coincida con lo que el frontend espera ('rol' en lugar de 'id_rol').
+    const userProfile = {
+      ...user,
+      rol: user.id_rol, // Renombrar id_rol a rol
+    };
+    delete userProfile.id_rol; // Eliminar el campo redundante
+
+    return res.json(userProfile);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error en el servidor" });
+    return res.status(500).json({ message: 'Error al obtener el perfil' });
   }
 };
 
@@ -27,10 +53,10 @@ export const updateProfile = async (req, res) => {
             WHERE id_usuario = ${req.user.id_usuario}
         `;
 
-    return res.json({ message: "Perfil actualizado correctamente" });
+    return res.json({ message: 'Perfil actualizado correctamente' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error en el servidor" });
+    return res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
@@ -48,10 +74,10 @@ export const listarUsuarios = async (req, res) => {
     // Filtro de búsqueda por nombre, apellido, email o documento
     if (q) {
       whereConditions.push(sql`(
-                nombres ILIKE ${"%" + q + "%"} OR 
-                apellidos ILIKE ${"%" + q + "%"} OR 
-                email ILIKE ${"%" + q + "%"} OR 
-                documento ILIKE ${"%" + q + "%"}
+                nombres ILIKE ${'%' + q + '%'} OR 
+                apellidos ILIKE ${'%' + q + '%'} OR 
+                email ILIKE ${'%' + q + '%'} OR 
+                documento ILIKE ${'%' + q + '%'}
             )`);
     }
 
@@ -62,7 +88,7 @@ export const listarUsuarios = async (req, res) => {
 
     // Filtro por estado
     if (estado !== undefined) {
-      const estadoBool = estado === "true" || estado === "1";
+      const estadoBool = estado === 'true' || estado === '1';
       whereConditions.push(sql`estado = ${estadoBool}`);
     }
 
@@ -86,7 +112,7 @@ export const listarUsuarios = async (req, res) => {
                 FROM usuarios u
                 LEFT JOIN roles r ON u.id_rol = r.id_rol
                 WHERE ${sql.unsafe(
-                  whereConditions.map((_, i) => `condition_${i}`).join(" AND ")
+                  whereConditions.map((_, i) => `condition_${i}`).join(' AND ')
                 )}
                 ORDER BY u.id_usuario DESC
                 LIMIT ${parseInt(limit)}
@@ -169,7 +195,7 @@ export const listarUsuarios = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       ok: false,
-      message: "Error al obtener usuarios",
+      message: 'Error al obtener usuarios',
     });
   }
 };
@@ -204,7 +230,7 @@ export const obtenerUsuario = async (req, res) => {
     if (usuario.length === 0) {
       return res.status(404).json({
         ok: false,
-        message: "Usuario no encontrado",
+        message: 'Usuario no encontrado',
       });
     }
 
@@ -238,7 +264,7 @@ export const obtenerUsuario = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       ok: false,
-      message: "Error al obtener el usuario",
+      message: 'Error al obtener el usuario',
     });
   }
 };
@@ -260,7 +286,7 @@ export const actualizarUsuario = async (req, res) => {
     if (usuarioExiste.length === 0) {
       return res.status(404).json({
         ok: false,
-        message: "Usuario no encontrado",
+        message: 'Usuario no encontrado',
       });
     }
 
@@ -293,14 +319,14 @@ export const actualizarUsuario = async (req, res) => {
 
     return res.json({
       ok: true,
-      message: "Usuario actualizado exitosamente",
+      message: 'Usuario actualizado exitosamente',
       data: usuarioActualizado[0],
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       ok: false,
-      message: "Error al actualizar el usuario",
+      message: 'Error al actualizar el usuario',
     });
   }
 };
@@ -320,7 +346,7 @@ export const desactivarUsuario = async (req, res) => {
     if (usuarioExiste.length === 0) {
       return res.status(404).json({
         ok: false,
-        message: "Usuario no encontrado",
+        message: 'Usuario no encontrado',
       });
     }
 
@@ -333,13 +359,13 @@ export const desactivarUsuario = async (req, res) => {
 
     return res.json({
       ok: true,
-      message: "Usuario desactivado exitosamente",
+      message: 'Usuario desactivado exitosamente',
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       ok: false,
-      message: "Error al desactivar el usuario",
+      message: 'Error al desactivar el usuario',
     });
   }
 };
