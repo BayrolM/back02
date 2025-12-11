@@ -139,7 +139,7 @@ export const listarUsuarios = async (req, res) => {
                 LEFT JOIN roles r ON u.id_rol = r.id_rol
                 WHERE ${conditions}
                 ORDER BY u.id_usuario DESC
-                LIMIT ${parseInt(limit)}
+                LIMIT ${parseInt(limit)} 
                 OFFSET ${offset}
             `;
     } else {
@@ -159,7 +159,7 @@ export const listarUsuarios = async (req, res) => {
                     u.estado
                 FROM usuarios u
                 LEFT JOIN roles r ON u.id_rol = r.id_rol
-                ORDER BY u.id_usuario DESC
+                ORDER BY u.id_usuario ASC
                 LIMIT ${parseInt(limit)}
                 OFFSET ${offset}
             `;

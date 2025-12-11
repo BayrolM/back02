@@ -44,7 +44,12 @@ export const obtenerOrdenes = async (req, res) => {
     console.log(`📦 Usuario ${id_usuario} (rol: ${rol}) solicitando órdenes`);
 
     // Pasar tanto el id_usuario como el rol al servicio
-    const ordenes = await ordersService.obtenerOrdenes(id_usuario, rol);
+    let ordenes = await ordersService.obtenerOrdenes(id_usuario, rol);
+
+    // Si el usuario es admin (rol 1), filtramos para mostrar solo pedidos completados en la vista de ventas
+    if (rol === 1) {
+      ordenes = ordenes.filter((orden) => orden.estado === 'completado');
+    }
 
     console.log(`✅ Devolviendo ${ordenes.length} órdenes`);
 
