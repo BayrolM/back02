@@ -180,7 +180,7 @@ export const obtenerDetalleOrden = async (
         p.estado,
         v.id_venta,
         v.metodo_pago,
-        u.nombre as nombre_usuario,
+        CONCAT(u.nombres, ' ', u.apellidos) as nombre_usuario,
         u.email as email_usuario
       FROM pedidos p
       LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
