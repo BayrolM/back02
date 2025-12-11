@@ -234,31 +234,9 @@ export const obtenerUsuario = async (req, res) => {
       });
     }
 
-    // Obtener estadísticas del usuario
-    const pedidos = await sql`
-            SELECT COUNT(*) as total 
-            FROM pedidos 
-            WHERE id_usuario = ${id} AND estado != 'carrito'
-        `;
-
-    const ventas = await sql`
-            SELECT 
-                COUNT(*) as total_compras,
-                COALESCE(SUM(total), 0) as total_gastado
-            FROM ventas 
-            WHERE id_cliente = ${id} AND estado = true
-        `;
-
     return res.json({
       ok: true,
-      data: {
-        ...usuario[0],
-        estadisticas: {
-          total_pedidos: parseInt(pedidos[0].total),
-          total_compras: parseInt(ventas[0].total_compras),
-          total_gastado: parseFloat(ventas[0].total_gastado),
-        },
-      },
+      data: usuario[0],
     });
   } catch (error) {
     console.error(error);
