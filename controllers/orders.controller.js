@@ -47,7 +47,7 @@ export const obtenerOrdenes = async (req, res) => {
     // Pasar tanto el id_usuario como el rol al servicio
     // El servicio ahora puede recibir un estado para filtrar
     const ordenes = await ordersService.obtenerOrdenes(id_usuario, rol, estado);
-    s;
+
     console.log(`✅ Devolviendo ${ordenes.length} órdenes`);
 
     return res.json({ ok: true, data: ordenes });

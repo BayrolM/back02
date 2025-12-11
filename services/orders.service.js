@@ -89,10 +89,13 @@ export const crearOrden = async (id_usuario, datosEnvio) => {
  * Si es admin (rol = 1), obtiene TODAS las órdenes
  * Si es usuario normal, solo sus órdenes
  */
-export const obtenerOrdenes = async (id_usuario, rol = null) => {
+export const obtenerOrdenes = async (id_usuario, rol = null, estado = null) => {
   console.log(`📦 obtenerOrdenes - Usuario: ${id_usuario}, Rol: ${rol}`);
 
   let ordenes;
+
+  // Construir el fragmento de la condición de estado
+  const estadoFilter = estado ? sql`AND p.estado = ${estado}` : sql``;
 
   // Si es admin (rol === 1), obtener TODAS las ordenes
   if (rol === 1) {
@@ -114,6 +117,7 @@ export const obtenerOrdenes = async (id_usuario, rol = null) => {
       LEFT JOIN ventas v ON p.id_pedido = v.id_pedido
       LEFT JOIN usuarios u ON p.id_usuario = u.id_usuario
       WHERE p.estado != 'carrito'
+      ${estadoFilter}
       ORDER BY p.id_pedido ASC
     `;
   } else {
