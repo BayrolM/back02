@@ -1,4 +1,4 @@
-import sql from "../config/db.js";
+import sql from '../config/db.js';
 
 /**
  * Filtros aceptados (query): q, marca, categoria, minPrice, maxPrice, estado
@@ -14,32 +14,42 @@ export const listarProductos = async (filters = {}) => {
     maxPrice,
     estado,
     page = 1,
-    limit = 10
+    limit = 10,
   } = filters;
 
   const offset = (page - 1) * limit;
 
-  // Construcción dinámica del WHERE usando fragmentos de postgres.js
-  
   // Parsear estado si existe
   let estadoVal;
   if (typeof estado !== 'undefined') {
-      // Convertir a boolean para PostgreSQL
-      estadoVal = (estado === "1" || estado === 1 || estado === 'true' || estado === true);
+    // Convertir a boolean para PostgreSQL
+    estadoVal =
+      estado === '1' || estado === 1 || estado === 'true' || estado === true;
   }
 
   const whereFragment = sql`
     WHERE 1=1
-    ${q ? sql`AND (p.nombre ILIKE ${'%' + q + '%'} OR p.sku ILIKE ${'%' + q + '%'} OR p.descripcion ILIKE ${'%' + q + '%'})` : sql``}
+    ${
+      q
+        ? sql`AND (p.nombre ILIKE ${'%' + q + '%'} OR p.sku ILIKE ${
+            '%' + q + '%'
+          } OR p.descripcion ILIKE ${'%' + q + '%'})`
+        : sql``
+    }
     ${marca ? sql`AND p.id_marca = ${marca}` : sql``}
     ${categoria ? sql`AND p.id_categoria = ${categoria}` : sql``}
     ${minPrice ? sql`AND p.precio_venta >= ${minPrice}` : sql``}
     ${maxPrice ? sql`AND p.precio_venta <= ${maxPrice}` : sql``}
-    ${typeof estado !== 'undefined' ? sql`AND p.estado = ${estadoVal}` : sql`AND p.estado = true`}
+    ${
+      typeof estado !== 'undefined'
+        ? sql`AND p.estado = ${estadoVal}`
+        : sql`AND p.estado = true`
+    }
   `;
 
   // Contar total
-  const countResult = await sql`SELECT COUNT(1) AS total FROM productos p ${whereFragment}`;
+  const countResult =
+    await sql`SELECT COUNT(1) AS total FROM productos p ${whereFragment}`;
   const total = parseInt(countResult[0].total, 10);
 
   // Obtener datos
@@ -71,8 +81,17 @@ export const obtenerProductoPorId = async (id) => {
 
 export const crearProducto = async (data) => {
   const {
-    sku, nombre, id_marca, id_categoria, descripcion,
-    costo_promedio, precio_venta, stock_actual = 0, stock_max = 0, stock_min = 0, estado = 1
+    sku,
+    nombre,
+    id_marca,
+    id_categoria,
+    descripcion,
+    costo_promedio,
+    precio_venta,
+    stock_actual = 0,
+    stock_max = 0,
+    stock_min = 0,
+    estado = 1,
   } = data;
 
   const result = await sql`
@@ -88,8 +107,17 @@ export const crearProducto = async (data) => {
 
 export const actualizarProducto = async (id, data) => {
   const {
-    sku, nombre, id_marca, id_categoria, descripcion,
-    costo_promedio, precio_venta, stock_actual, stock_max, stock_min, estado
+    sku,
+    nombre,
+    id_marca,
+    id_categoria,
+    descripcion,
+    costo_promedio,
+    precio_venta,
+    stock_actual,
+    stock_max,
+    stock_min,
+    estado,
   } = data;
 
   // Construir objeto de actualización

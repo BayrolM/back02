@@ -15,9 +15,9 @@ export const agregarItem = async (req, res) => {
     const { id_producto, cantidad } = req.body;
 
     if (!id_producto || !cantidad || cantidad <= 0) {
-      return res.status(400).json({ 
-        ok: false, 
-        message: "id_producto y cantidad son requeridos" 
+      return res.status(400).json({
+        ok: false,
+        message: "id_producto y cantidad son requeridos",
       });
     }
 
@@ -30,7 +30,10 @@ export const agregarItem = async (req, res) => {
     return res.json({ ok: true, data: carrito });
   } catch (error) {
     console.error(error);
-    if (error.message === 'Producto no encontrado' || error.message === 'Stock insuficiente') {
+    if (
+      error.message === "Producto no encontrado" ||
+      error.message === "Stock insuficiente"
+    ) {
       return res.status(400).json({ ok: false, message: error.message });
     }
     return res.status(500).json({ ok: false, message: "Error en el servidor" });
@@ -43,9 +46,9 @@ export const actualizarItem = async (req, res) => {
     const { cantidad } = req.body;
 
     if (!cantidad || cantidad <= 0) {
-      return res.status(400).json({ 
-        ok: false, 
-        message: "La cantidad debe ser mayor a 0" 
+      return res.status(400).json({
+        ok: false,
+        message: "La cantidad debe ser mayor a 0",
       });
     }
 
@@ -58,7 +61,10 @@ export const actualizarItem = async (req, res) => {
     return res.json({ ok: true, data: carrito });
   } catch (error) {
     console.error(error);
-    if (error.message.includes('no encontrado') || error.message === 'Stock insuficiente') {
+    if (
+      error.message.includes("no encontrado") ||
+      error.message === "Stock insuficiente"
+    ) {
       return res.status(400).json({ ok: false, message: error.message });
     }
     return res.status(500).json({ ok: false, message: "Error en el servidor" });
@@ -77,7 +83,7 @@ export const eliminarItem = async (req, res) => {
     return res.json({ ok: true, data: carrito });
   } catch (error) {
     console.error(error);
-    if (error.message.includes('no encontrado')) {
+    if (error.message.includes("no encontrado")) {
       return res.status(404).json({ ok: false, message: error.message });
     }
     return res.status(500).json({ ok: false, message: "Error en el servidor" });

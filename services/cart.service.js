@@ -1,7 +1,7 @@
 import sql from "../config/db.js";
 
 /**
- * Obtener el carrito del usuario (pedido en estado 'carrito')
+ * Obtener el carrito del usuario
  */
 export const obtenerCarrito = async (id_usuario) => {
   // Buscar o crear un pedido en estado 'carrito'
@@ -43,7 +43,7 @@ export const obtenerCarrito = async (id_usuario) => {
   return {
     id_pedido,
     items,
-    total
+    total,
   };
 };
 
@@ -74,11 +74,11 @@ export const agregarAlCarrito = async (id_usuario, id_producto, cantidad) => {
   `;
 
   if (producto.length === 0) {
-    throw new Error('Producto no encontrado');
+    throw new Error("Producto no encontrado");
   }
 
   if (producto[0].stock_actual < cantidad) {
-    throw new Error('Stock insuficiente');
+    throw new Error("Stock insuficiente");
   }
 
   const precio_unitario = producto[0].precio_venta;
@@ -110,9 +110,13 @@ export const agregarAlCarrito = async (id_usuario, id_producto, cantidad) => {
 /**
  * Actualizar cantidad de un item del carrito
  */
-export const actualizarItemCarrito = async (id_usuario, id_detalle_pedido, cantidad) => {
+export const actualizarItemCarrito = async (
+  id_usuario,
+  id_detalle_pedido,
+  cantidad
+) => {
   if (cantidad <= 0) {
-    throw new Error('La cantidad debe ser mayor a 0');
+    throw new Error("La cantidad debe ser mayor a 0");
   }
 
   // Verificar que el item pertenece al carrito del usuario
@@ -127,11 +131,11 @@ export const actualizarItemCarrito = async (id_usuario, id_detalle_pedido, canti
   `;
 
   if (item.length === 0) {
-    throw new Error('Item no encontrado en el carrito');
+    throw new Error("Item no encontrado en el carrito");
   }
 
   if (item[0].stock_actual < cantidad) {
-    throw new Error('Stock insuficiente');
+    throw new Error("Stock insuficiente");
   }
 
   await sql`
@@ -158,7 +162,7 @@ export const eliminarItemCarrito = async (id_usuario, id_detalle_pedido) => {
   `;
 
   if (item.length === 0) {
-    throw new Error('Item no encontrado en el carrito');
+    throw new Error("Item no encontrado en el carrito");
   }
 
   await sql`
